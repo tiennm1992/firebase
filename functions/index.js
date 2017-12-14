@@ -66,25 +66,18 @@ exports.updateInforUser = functions.https.onRequest((request, response) => {
   });
 });
 
-//update datetime
-// exports.updateClientTime = functions.database.ref('/Messages/{conversationId}/{pushId}')
-// .onWrite(event => {
-//   var now = new Date().getTime();
-//   return event.data.ref.update({sent_time:now});
-// });
-
 //update and create conversation
 exports.updateConversation = functions.database.ref('/Messages/{conversationId}/{pushId}')
 .onWrite(event => {
 const message_data = event.data.val();
 var now = new Date().getTime();
-var date_time = now.toString();
+var date_time_tmp = now.toString();
 
 //check time
-var check_send_time = typeof message_data.sent_time === 'undefined' ? null : message_data.sent_time;
+var date_time = typeof message_data.sent_time === 'undefined' ? null : message_data.sent_time;
 console.log(check_send_time);
 if (check_send_time === null) {
-        return event.data.ref.update({sent_time:date_time});
+        return event.data.ref.update({sent_time:date_time_tmp});
 }
 //parse data
 const travel_id = message_data.travel_id;
@@ -153,6 +146,20 @@ if ( from_id ==0 || to_id==0 ){
   }
   return true;
 });
+
+//merge conversation in matching
+
+//count unread message 
+exports.unreadMessage = functions.https.onRequest((req, res) => {
+  // Grab the text parameter.
+  admin.database().ref("/Messages/{conversationId}/{pushId}/message").equalTo('hello').on("value", function(snapshot) {
+      snapshot.forEach(function(data) {
+        console.log("The " + data.key + " dinosaur's score is " + data.val());
+     });
+      response.send(snapshot);
+  });
+});
+//get unread message
 
 //push for message chat
 exports.pushNotification = functions.database.ref('/messages/{pushId}').onWrite( event => {
