@@ -67,16 +67,25 @@ exports.updateInforUser = functions.https.onRequest((request, response) => {
 });
 
 //update datetime
-// exports.updateClientTime = functions.database.ref('/messages/{pushId}/name')
+// exports.updateClientTime = functions.database.ref('/Messages/{conversationId}/{pushId}')
 // .onWrite(event => {
 //   var now = new Date().getTime();
-//   return event.data.ref.parent.child('client_time').set(now);
+//   return event.data.ref.update({sent_time:now});
 // });
 
 //update and create conversation
 exports.updateConversation = functions.database.ref('/Messages/{conversationId}/{pushId}')
 .onWrite(event => {
-  const message_data = event.data.val();
+const message_data = event.data.val();
+var now = new Date().getTime();
+var date_time = now.toString();
+
+//check time
+var check_send_time = typeof message_data.sent_time === 'undefined' ? null : message_data.sent_time;
+console.log(check_send_time);
+if (check_send_time === null) {
+        return event.data.ref.update({sent_time:date_time});
+}
 //parse data
 const travel_id = message_data.travel_id;
 const trip_id = message_data.trip_id;
@@ -93,22 +102,27 @@ var db = admin.database();
 var trip_travel=trip_id + '_' + travel_id;
   
 if ( from_id ==0 || to_id==0 ){
-  if (from_id ==0) {
-   var user_admin = from_id +'_'+ to_id;
- }else{
-  var user_admin = to_id +'_'+ from_id;
-}
-var adminRef = db.ref("/Conversations/"+to_id+'/admin/'+user_admin);
-adminRef.child("last_message").set(last_message);
-adminRef.child("partner_id").set(from_id);
-adminRef.child("sent_time").set(sent_time);
-adminRef.child("conversation_id").set(conversation_id);
-    // partner update conversation
+    if (from_id ==0) {
+     var user_admin = from_id +'_'+ to_id;
+    }else{
+    var user_admin = to_id +'_'+ from_id;
+    }
+    var admin_update1= {
+        last_message:last_message,
+        partner_id:from_id,
+        sent_time:date_time,
+        conversation_id:conversation_id
+    };
+    var admin_update2= {
+        last_message:last_message,
+        partner_id:to_id,
+        sent_time:date_time,
+        conversation_id:conversation_id
+    }
+    var adminRef = db.ref("/Conversations/"+to_id+'/admin/'+user_admin);
+    adminRef.update(admin_update1);
     var clientRef = db.ref("/Conversations/"+from_id+'/admin/'+user_admin);
-    clientRef.child("last_message").set(last_message);
-    clientRef.child("partner_id").set(to_id);
-    clientRef.child("sent_time").set(sent_time);
-    clientRef.child("conversation_id").set(conversation_id);
+    clientRef.update(admin_update2);
   }else {
     //update user to
     if (user_type_to == 1) {
@@ -116,28 +130,29 @@ adminRef.child("conversation_id").set(conversation_id);
     }else{
       var toRef = db.ref("/Conversations/"+to_id+'/driver/'+trip_travel);
     }
-    toRef.child("last_message").set(last_message);
-    toRef.child("partner_id").set(from_id);
-    toRef.child("sent_time").set(sent_time);
-    toRef.child("conversation_id").set(conversation_id);
-
+    var update_to={
+      last_message:last_message,
+      partner_id:from_id,
+      sent_time:date_time,
+      conversation_id:conversation_id
+    }
+    toRef.update(update_to);
     //update user from
     if (user_type_from == 1) {
       var fromRef = db.ref("/Conversations/"+from_id+'/passenger/'+trip_travel);
     }else{
       var fromRef = db.ref("/Conversations/"+from_id+'/driver/'+trip_travel);
     }
-    fromRef.child("last_message").set(last_message);
-    fromRef.child("partner_id").set(to_id);
-    fromRef.child("sent_time").set(sent_time);
-    fromRef.child("conversation_id").set(conversation_id);
+    var update_from={
+      last_message:last_message,
+      partner_id:to_id,
+      sent_time:date_time,
+      conversation_id:conversation_id
+    }
+    fromRef.update(update_from);
   }
   return true;
- // return event.data.ref.parent.child('client_time').update(now);
 });
-
-
-
 
 //push for message chat
 exports.pushNotification = functions.database.ref('/messages/{pushId}').onWrite( event => {
