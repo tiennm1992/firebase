@@ -156,6 +156,7 @@ exports.unreadMessage = functions.https.onRequest((request, response) => {
   ref.orderByChild("height").on("child_added",function(snapshot){
     console.log(snapshot.key + "was" + snapshot.val().height);
   })
+   response.send("Just save successful !");
 });
 //get unread message
 
