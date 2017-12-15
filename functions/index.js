@@ -48,7 +48,7 @@ exports.addMessage = functions.https.onRequest((req, res) => {
 
 //update information for user
 exports.updateInforUser = functions.https.onRequest((request, response) => {
-  const avatar = request.body.avatar;
+  const avatar = request.body.avatar; 
   const name = request.body.name;
   const push_token = request.body.push_token; 
   const status = request.body.status; 
@@ -75,8 +75,8 @@ var date_time_tmp = now.toString();
 
 //check time
 var date_time = typeof message_data.sent_time === 'undefined' ? null : message_data.sent_time;
-console.log(check_send_time);
-if (check_send_time === null) {
+console.log(date_time);
+if (date_time === null) {
         return event.data.ref.update({sent_time:date_time_tmp});
 }
 //parse data
@@ -150,14 +150,12 @@ if ( from_id ==0 || to_id==0 ){
 //merge conversation in matching
 
 //count unread message 
-exports.unreadMessage = functions.https.onRequest((req, res) => {
-  // Grab the text parameter.
-  admin.database().ref("/Messages/{conversationId}/{pushId}/message").equalTo('hello').on("value", function(snapshot) {
-      snapshot.forEach(function(data) {
-        console.log("The " + data.key + " dinosaur's score is " + data.val());
-     });
-      response.send(snapshot);
-  });
+exports.unreadMessage = functions.https.onRequest((request, response) => {
+  var db = admin.database();
+  var ref = db.ref("dinosaurs");
+  ref.orderByChild("height").on("child_added",function(snapshot){
+    console.log(snapshot.key + "was" + snapshot.val().height);
+  })
 });
 //get unread message
 
