@@ -1,6 +1,7 @@
 {
   "projects": {
     "default": "functions-1-c5861",
-    "norina_function": "norina-1233"
+    "norina_function": "norina-1233",
+    "norina": "norina-1233"
   }
 }
